@@ -38,7 +38,7 @@
 - Python 3.10+
 - [Aiogram 3](https://github.com/aiogram/aiogram)
 - [Mistral API](https://docs.mistral.ai)
-- Wildberries API (неофициальный)
+- Wildberries API
 - dotenv для хранения конфигурации
 
 ## 🔧 Установка и запуск
