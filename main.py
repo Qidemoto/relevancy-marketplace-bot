@@ -8,7 +8,7 @@ from aiogram.filters import CommandStart
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-import mistral_api  # импортируем наш модуль
+import mistral_api
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -50,12 +50,10 @@ async def cmd_about(msg: types.Message):
         "🔍 Бот использует алгоритм на базе нейросетевой модель для оценки релевантности, цены, отзывов и рейтинга товаров.\n\n"
         "🧠 Технологии:\n"
         "• Python + Aiogram\n"
-        "• Модель для анализа товаров"
-        "\n"
+        "• Модель для анализа товаров\n"
         "• Wildberries API для получения товаров"
     )
     await msg.answer(text, parse_mode=ParseMode.HTML)
-
 
 
 @dp.message(F.text)
@@ -77,7 +75,10 @@ async def handle_message(msg: types.Message):
             "full_price": p.get("priceU", 0) / 100,
             "rating": p.get("reviewRating", 0),
             "reviews": p.get("feedbacks", 0),
-            "url": f"https://www.wildberries.ru/catalog/{p.get('id')}/detail.aspx"
+            "url": f"https://www.wildberries.ru/catalog/{p.get('id')}/detail.aspx",
+            "colors": ", ".join(c["name"] for c in p.get("colors", [])),
+            "entity": p.get("entity", ""),
+            "sizes": ", ".join(s.get("origName", "") for s in p.get("sizes", []))
         })
 
     try:
@@ -86,12 +87,19 @@ async def handle_message(msg: types.Message):
         await msg.answer(f"Ошибка при обращении к Mistral: {e}")
         return
 
+    print(f"{query} -> {best_product}")
+
     text = (
-        f"<b>{best_product['title']}</b>\n"
-        f"Бренд: {best_product['brand']}\n"
-        f"Цена: {best_product['price']:.2f} ₽ (до скидки: {best_product['full_price']:.2f} ₽)\n"
-        f"Рейтинг: {best_product['rating']}⭐\n({best_product['reviews']} отзывов)"
+        f"<b>{best_product['title']}</b>\n\n"
+        f"🏷️  <i>Бренд:</i> {best_product['brand']}\n"
+        f"📂  <i>Категория:</i> {best_product['entity']}\n"
+        f"📏  <i>Размеры:</i> {best_product['sizes']}\n"
+        f"🎨  <i>Цвет:</i> {best_product['colors']}\n"
+        f"💰  <i>Цена:</i> <b>{best_product['price']:.2f} ₽</b> "
+        f"(до скидки: <s>{best_product['full_price']:.2f} ₽</s>)\n"
+        f"⭐  <i>Рейтинг:</i> <b>{best_product['rating']:.1f}</b> ({best_product['reviews']} отзывов)"
     )
+
     if mistral_comment:
         text += f"\n\n<i>{mistral_comment}</i>"
 
